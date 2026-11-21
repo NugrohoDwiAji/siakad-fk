@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import SidebarSectionLabel from "../atoms/SidebarSectionLabel";
 import SidebarNavItem from "../atoms/SidebarNavItem";
 import SidebarParentItem from "../atoms/SidebarParentItem";
@@ -36,7 +37,19 @@ export default function SidebarNavGroup({
   defaultOpen = false,
   collapsed = false,
 }: SidebarNavGroupProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const location = useLocation();
+  const hasActiveChild = items.some(
+    (item) =>
+      location.pathname === item.to ||
+      (item.to !== "/admin" && location.pathname.startsWith(item.to + "/"))
+  );
+  const [open, setOpen] = useState(defaultOpen || hasActiveChild);
+
+  useEffect(() => {
+    if (hasActiveChild) {
+      setOpen(true);
+    }
+  }, [hasActiveChild]);
 
   // In sidebar-collapsed (icon-only) mode, show all items directly — no room for accordion
   if (collapsed) {

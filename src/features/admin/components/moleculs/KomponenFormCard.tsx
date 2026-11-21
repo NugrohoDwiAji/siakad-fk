@@ -1,18 +1,27 @@
 import { useState } from "react";
-import type { KomponenPenilaian } from "../../types/penilaianBlok";
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
 interface KomponenFormCardProps {
-  /** Pass existing data to pre-fill for edit mode, undefined for add */
-  initial?: KomponenPenilaian;
+  /** Override the modal title */
+  modalTitle?: string;
+  /** Context label shown under title — e.g. parent komponen name */
+  contextLabel?: string;
+  /** Pre-fill values for edit mode; undefined → add mode */
+  initial?: { judul: string; bobot: number };
   onSave: (data: { judul: string; bobot: number }) => void;
   onCancel: () => void;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export default function KomponenFormCard({ initial, onSave, onCancel }: KomponenFormCardProps) {
+export default function KomponenFormCard({
+  modalTitle,
+  contextLabel,
+  initial,
+  onSave,
+  onCancel,
+}: KomponenFormCardProps) {
   const [judul, setJudul] = useState(initial?.judul ?? "");
   const [bobot, setBobot] = useState<number>(initial?.bobot ?? 0);
   const [error, setError] = useState<string>("");
@@ -31,6 +40,12 @@ export default function KomponenFormCard({ initial, onSave, onCancel }: Komponen
   }
 
   const isEdit = !!initial;
+  const title = modalTitle ?? (isEdit ? "Edit Komponen" : "Tambah Komponen Penilaian");
+  const subtitle = contextLabel
+    ? `Sub dari: ${contextLabel}`
+    : isEdit
+    ? "Perbarui data komponen penilaian."
+    : "Masukkan judul dan bobot komponen baru.";
 
   return (
     /* Backdrop */
@@ -43,12 +58,8 @@ export default function KomponenFormCard({ initial, onSave, onCancel }: Komponen
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h3 className="text-base font-bold text-gray-900">
-              {isEdit ? "Edit Komponen" : "Tambah Komponen Penilaian"}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {isEdit ? "Perbarui data komponen penilaian." : "Masukkan judul dan bobot komponen baru."}
-            </p>
+            <h3 className="text-base font-bold text-gray-900">{title}</h3>
+            <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
           </div>
           <button
             type="button"

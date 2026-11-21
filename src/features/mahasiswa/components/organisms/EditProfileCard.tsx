@@ -1,11 +1,11 @@
 import { useState } from "react";
-import Button from "../../../../components/atoms/Button";
-import FormField from "../../../../components/molecules/FormField";
-import SelectField from "../../../../components/molecules/SelectField";
-import TextareaField from "../../../../components/molecules/TextareaField";
-import RadioGroupField from "../../../../components/molecules/RadioGroupField";
+import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
+import SelectField from "@/components/ui/SelectField";
+import TextareaField from "@/components/ui/TextareaField";
+import RadioGroupField from "@/components/ui/RadioGroupField";
 import PhotoUpload from "../atoms/PhotoUpload";
-import type { Mahasiswa } from "../../types/mahasiswa";
+import type { Mahasiswa } from "@/features/mahasiswa/types";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

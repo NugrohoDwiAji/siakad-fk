@@ -1,5 +1,5 @@
-import Button from "../../../../components/atoms/Button";
-import type { Mahasiswa } from "../../types/mahasiswa";
+import Button from "@/components/ui/Button";
+import type { Mahasiswa } from "@/features/mahasiswa/types";
 
 interface ProfileCardProps {
   mahasiswa: Mahasiswa;

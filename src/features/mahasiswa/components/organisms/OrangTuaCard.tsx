@@ -1,4 +1,4 @@
-import type { OrangTua } from "../../types/mahasiswa";
+import type { OrangTua } from "@/features/mahasiswa/types";
 
 interface OrangTuaCardProps {
   orangTua: OrangTua;

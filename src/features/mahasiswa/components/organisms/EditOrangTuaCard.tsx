@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Button from "../../../../components/atoms/Button";
-import FormField from "../../../../components/molecules/FormField";
-import TextareaField from "../../../../components/molecules/TextareaField";
-import type { OrangTua } from "../../types/mahasiswa";
+import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
+import TextareaField from "@/components/ui/TextareaField";
+import type { OrangTua } from "@/features/mahasiswa/types";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

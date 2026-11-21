@@ -1,73 +1,95 @@
-
+import { useState, useEffect } from "react";
 import KurikulumCard from "../components/organisms/KurikulumCard";
-import type { KurikulumSemester } from "../types/mahasiswa";
+import type { KurikulumSemester } from "@/features/mahasiswa/types";
+import { getKurikulum } from "@/features/mahasiswa/api/kurikulum";
+import { useAuthStore } from "@/features/auth/stores/authStore";
+import { getSemester } from "@/utils/mahasiswa";
 
-// TODO: ganti dengan data dari API
-const kurikulumData: KurikulumSemester[] = [
-  {
-    semester: 1,
-    totalSks: 22,
-    mataKuliah: [
-      { kode: "FK1101", nama: "Biologi Sel dan Molekuler", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK1102", nama: "Kimia Kedokteran", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK1103", nama: "Anatomi Dasar", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK1104", nama: "Fisika Medik", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK1105", nama: "Praktikum Anatomi", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK1106", nama: "Pendidikan Agama", sksTeori: 2, sksPraktek: 0 },
-      { kode: "FK1107", nama: "Bahasa Indonesia", sksTeori: 2, sksPraktek: 0 },
-      { kode: "FK1108", nama: "Bahasa Inggris Medis", sksTeori: 2, sksPraktek: 0 },
-    ],
-  },
-  {
-    semester: 2,
-    totalSks: 22,
-    mataKuliah: [
-      { kode: "FK1201", nama: "Histologi", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK1202", nama: "Fisiologi I", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK1203", nama: "Biokimia Dasar", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK1204", nama: "Praktikum Histologi", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK1205", nama: "Praktikum Biokimia", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK1206", nama: "Ilmu Kesehatan Masyarakat I", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK1207", nama: "Pancasila & Kewarganegaraan", sksTeori: 2, sksPraktek: 0 },
-      { kode: "FK1208", nama: "Etika & Hukum Kedokteran", sksTeori: 2, sksPraktek: 0 },
-    ],
-  },
-  {
-    semester: 3,
-    totalSks: 24,
-    mataKuliah: [
-      { kode: "FK2101", nama: "Patologi Anatomi I", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK2102", nama: "Mikrobiologi Dasar", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2103", nama: "Fisiologi II", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK2104", nama: "Farmakologi Dasar", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2105", nama: "Praktikum Mikrobiologi", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK2106", nama: "Praktikum Farmakologi", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK2107", nama: "Parasitologi", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2108", nama: "Bahasa Inggris Lanjut", sksTeori: 2, sksPraktek: 1 },
-    ],
-  },
-  {
-    semester: 4,
-    totalSks: 24,
-    mataKuliah: [
-      { kode: "FK2201", nama: "Patologi Anatomi II", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK2202", nama: "Farmakologi Klinik", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2203", nama: "Radiologi Dasar", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2204", nama: "Patologi Klinik", sksTeori: 3, sksPraktek: 1 },
-      { kode: "FK2205", nama: "Praktikum Patologi Klinik", sksTeori: 0, sksPraktek: 2 },
-      { kode: "FK2206", nama: "Imunologi", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2207", nama: "Metodologi Penelitian", sksTeori: 2, sksPraktek: 1 },
-      { kode: "FK2208", nama: "Biostatistik", sksTeori: 2, sksPraktek: 0 },
-    ],
-  },
-];
+// ─── Raw API types ────────────────────────────────────────────────────────────
 
-// Semester aktif mahasiswa — TODO: ambil dari data sesi
-const SEMESTER_AKTIF = 4;
+interface RawMataKuliahItem {
+  kode_matakuliah?: string;
+  nama_matakuliah?: string;
+  sks_teori?: number;
+  sks_praktik?: number;
+  block?: string;
+}
+
+interface RawSemesterItem {
+  semester?: number;
+  total_sks?: number;
+  matakuliah?: RawMataKuliahItem[];
+}
+
+// ─── Normalize ────────────────────────────────────────────────────────────────
+
+function normalizeKurikulumData(raw: unknown): KurikulumSemester[] {
+  if (!raw) return [];
+
+  let items: RawSemesterItem[] = [];
+
+  if (Array.isArray(raw)) {
+    items = raw;
+  } else if (typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    // Response: { data_kurikulum: [...], kurikulum: {...} }
+    if (Array.isArray(obj.data_kurikulum)) {
+      items = obj.data_kurikulum as RawSemesterItem[];
+    } else if (Array.isArray(obj.data)) {
+      items = obj.data as RawSemesterItem[];
+    }
+  }
+
+  return items.map((sem) => ({
+    semester: Number(sem.semester || 0),
+    totalSks: Number(sem.total_sks || 0),
+    mataKuliah: Array.isArray(sem.matakuliah)
+      ? sem.matakuliah.map((mk) => ({
+          code: String(mk.kode_matakuliah || ""),
+          nama: String(mk.nama_matakuliah || ""),
+          sksTeori: Number(mk.sks_teori || 0),
+          sksPraktek: Number(mk.sks_praktik || 0),
+          block: mk.block,
+        }))
+      : [],
+  }));
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Kurikulum() {
-  const totalSksKeseluruhan = kurikulumData.reduce((sum, s) => sum + s.totalSks, 0);
-  const totalMataKuliah = kurikulumData.reduce((sum, s) => sum + s.mataKuliah.length, 0);
+  const user = useAuthStore((state) => state.user);
+  const [kurikulumData, setKurikulumData] = useState<KurikulumSemester[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const semesterAktif = user?.nim ? getSemester(user.nim) : 1;
+
+  useEffect(() => {
+    async function fetchKurikulum() {
+      setLoading(true);
+      setError(null);
+      const response = await getKurikulum();
+      console.log("ini response get kurikulum", response);
+      if (!response.status) {
+        setError(response.message);
+      } else {
+        const normalized = normalizeKurikulumData(response.data);
+        setKurikulumData(normalized);
+      }
+      setLoading(false);
+    }
+    fetchKurikulum();
+  }, []);
+
+  const totalSksKeseluruhan = kurikulumData.reduce(
+    (sum, s) => sum + s.totalSks,
+    0,
+  );
+  const totalMataKuliah = kurikulumData.reduce(
+    (sum, s) => sum + s.mataKuliah.length,
+    0,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,39 +97,62 @@ export default function Kurikulum() {
       <div>
         <h1 className="text-xl font-bold text-gray-900">Kurikulum</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Daftar mata kuliah per semester program studi Pendidikan Dokter
+          Daftar mata kuliah per semester program studi
         </p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-200 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        </div>
+      )}
+
       {/* Summary pills */}
-      <div className="flex flex-wrap gap-3">
-        {[
-          { label: "Total Semester", value: kurikulumData.length },
-          { label: "Total Mata Kuliah", value: totalMataKuliah },
-          { label: "Total SKS", value: totalSksKeseluruhan },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-32"
-          >
-            <p className="text-xs text-gray-500">{item.label}</p>
-            <p className="text-xl font-bold text-brand-800">{item.value}</p>
-          </div>
-        ))}
-      </div>
+      {!loading && kurikulumData.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: "Total Semester", value: kurikulumData.length },
+            { label: "Total Mata Kuliah", value: totalMataKuliah },
+            { label: "Total SKS", value: totalSksKeseluruhan },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-32"
+            >
+              <p className="text-xs text-gray-500">{item.label}</p>
+              <p className="text-xl font-bold text-brand-800">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Kurikulum cards */}
-      <div className="flex flex-col gap-3">
-        {kurikulumData.map((semester) => (
-          <KurikulumCard
-            key={semester.semester}
-            data={semester}
-            semesterAktif={SEMESTER_AKTIF}
-            defaultOpen={semester.semester === SEMESTER_AKTIF}
-          />
-        ))}
-      </div>
+      {!loading && (
+        <div className="flex flex-col gap-3">
+          {kurikulumData.map((semester) => (
+            <KurikulumCard
+              key={semester.semester}
+              data={semester}
+              semesterAktif={semesterAktif}
+              defaultOpen={semester.semester === semesterAktif}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && kurikulumData.length === 0 && !error && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <p className="text-sm text-gray-400">Belum ada data kurikulum</p>
+        </div>
+      )}
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { KurikulumSemester } from "../../types/mahasiswa";
+import type { KurikulumSemester } from "@/features/mahasiswa/types";
 
 // ─── Chevron icon ──────────────────────────────────────────────────────────────
 
@@ -93,73 +93,64 @@ export default function KurikulumCard({
         </div>
       </button>
 
-      {/* ── Table ── */}
+      {/* ── Table (desktop) ── */}
       {open && (
-        <div className="border-t border-gray-100 overflow-x-auto">
+        <div className="border-t border-gray-100 overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">
-                  Kode
-                </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Nama Mata Kuliah
-                </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-24">
-                  SKS Teori
-                </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-24">
-                  SKS Praktek
-                </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-20">
-                  Total
-                </th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">Kode</th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama Mata Kuliah</th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-24">SKS Teori</th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-24">SKS Praktek</th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center w-20">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {data.mataKuliah.map((mk) => (
-                <tr
-                  key={mk.kode}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-5 py-3 font-mono text-xs text-gray-500">
-                    {mk.kode}
-                  </td>
-                  <td className="px-5 py-3 text-gray-800 font-medium">
-                    {mk.nama}
-                  </td>
-                  <td className="px-5 py-3 text-center text-gray-700">
-                    {mk.sksTeori}
-                  </td>
-                  <td className="px-5 py-3 text-center text-gray-700">
-                    {mk.sksPraktek}
-                  </td>
-                  <td className="px-5 py-3 text-center font-semibold text-brand-700">
-                    {mk.sksTeori + mk.sksPraktek}
-                  </td>
+                <tr key={mk.code} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-5 py-3 font-mono text-xs text-gray-500">{mk.code}</td>
+                  <td className="px-5 py-3 text-gray-800 font-medium">{mk.nama}</td>
+                  <td className="px-5 py-3 text-center text-gray-700">{mk.sksTeori}</td>
+                  <td className="px-5 py-3 text-center text-gray-700">{mk.sksPraktek}</td>
+                  <td className="px-5 py-3 text-center font-semibold text-brand-700">{mk.sksTeori + mk.sksPraktek}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="bg-brand-50 border-t border-brand-100">
-                <td
-                  colSpan={2}
-                  className="px-5 py-2.5 text-xs font-semibold text-brand-700"
-                >
-                  Total
-                </td>
-                <td className="px-5 py-2.5 text-center text-xs font-bold text-blue-700">
-                  {data.mataKuliah.reduce((s, m) => s + m.sksTeori, 0)}
-                </td>
-                <td className="px-5 py-2.5 text-center text-xs font-bold text-amber-700">
-                  {data.mataKuliah.reduce((s, m) => s + m.sksPraktek, 0)}
-                </td>
-                <td className="px-5 py-2.5 text-center text-xs font-bold text-brand-700">
-                  {data.totalSks}
-                </td>
+                <td colSpan={2} className="px-5 py-2.5 text-xs font-semibold text-brand-700">Total</td>
+                <td className="px-5 py-2.5 text-center text-xs font-bold text-blue-700">{data.mataKuliah.reduce((s, m) => s + m.sksTeori, 0)}</td>
+                <td className="px-5 py-2.5 text-center text-xs font-bold text-amber-700">{data.mataKuliah.reduce((s, m) => s + m.sksPraktek, 0)}</td>
+                <td className="px-5 py-2.5 text-center text-xs font-bold text-brand-700">{data.totalSks}</td>
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+
+      {/* ── Cards (mobile) ── */}
+      {open && (
+        <div className="md:hidden border-t border-gray-100">
+          <div className="divide-y divide-gray-100">
+            {data.mataKuliah.map((mk) => (
+              <div key={mk.code} className="px-5 py-3 flex items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-mono text-xs text-gray-500">{mk.code}</span>
+                  <span className="text-sm text-gray-800 font-medium">{mk.nama}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-medium">T: {mk.sksTeori}</span>
+                  <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium">P: {mk.sksPraktek}</span>
+                  <span className="text-xs font-bold text-brand-700">{mk.sksTeori + mk.sksPraktek}</span>
+                </div>
+              </div>
+            ))}
+            <div className="px-5 py-2.5 bg-brand-50 flex items-center justify-between">
+              <span className="text-xs font-semibold text-brand-700">Total</span>
+              <span className="text-xs font-bold text-brand-700">{data.totalSks} SKS</span>
+            </div>
+          </div>
         </div>
       )}
     </div>

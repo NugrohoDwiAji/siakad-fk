@@ -1,4 +1,4 @@
-import type { StatusValidasi } from "../../types/mahasiswa";
+import type { StatusValidasi } from "@/features/mahasiswa/types";
 import ValidasiBadge from "../atoms/ValidasiBadge";
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
